@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
+
+package controller;
+
+message ControllerConfig {
+    // Name is the name of the controller.
+    string name = 1;
+
+    // Parent is the resource type that the controller is responsible for.
+    GroupVersionKind parent = 2;
+
+    // Children is a list of resources types that the controller creates and owns.
+    repeated GroupVersionKind children = 3;
+}
+
+message GroupVersionKind {
+    // Group is the API group of the resource.
+    string group = 1;
+
+    // Version is the API version of the resource.
+    string version = 2;
+
+    // Kind is the API kind of the resource.
+    string kind = 3;
+}

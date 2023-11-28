@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
+
+import "controller.proto";
+import "reconciler.proto";
+
+package controller;
+
+service ControllerManager {
+    // CreateManager creates a Controller Manager with the given config.
+    rpc CreateManager(CreateManagerRequest) returns (CreateManagerResponse) {}
+
+    // ReconcileLoop returns the next object to be processed by the controller.
+    rpc ReconcileLoop(stream ReconcileLoopRequest) returns (stream ReconcileLoopResponse) {}
+}
+
+message CreateManagerRequest {
+    // Name is the name of the Controller Manager.
+    string name = 1;
+
+    repeated ControllerConfig controllers = 2;
+}
+
+message CreateManagerResponse {
+    // ID is the unique ID of the Controller Manager.
+    string id = 1;
+}
+
+// ReconcileLoop() is a bidirectional streaming call.
+// Each request can contain one of several types of sub-messages.
+message ReconcileLoopRequest {
+    oneof msg {
+        // Subscribe should be sent once at the beginning of the stream,
+        // to indicate what controller the client is interested in.
+        WorkQueue subscribe = 1;
+
+        // Acknowledge should be sent after each object is processed,
+        // whether it was successful or not. The server will not send
+        // another object until the last outstanding response has been
+        // acknowledged.
+        ReconcileResult acknowledge = 2;
+    }
+}
+
+// ReconcileLoopResponse contains a single object to be reconciled.
+message ReconcileLoopResponse {
+    // Object is a JSON-encoded Kubernetes object.
+    bytes object = 1;
+}

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
+
+import "google/protobuf/duration.proto";
+
+package controller;
+
+message ReconcileResult {
+    // Error is the error message, if any.
+    // If the error is unset, the processing is assumed to be successful.
+    optional string error = 1;
+
+    // Requeue indicates that the object should be immediately requeued.
+    // The default is false.
+    bool requeue = 2;
+
+    // RequeueAfter indicates that the object should be requeued after the
+    // given delay, if set to a value greater than 0.
+    google.protobuf.Duration requeue_after = 3;
+}
+
+message WorkQueue {
+    // ManagerID is the unique ID of the Controller Manager,
+    // as returned by GetManager().
+    string manager_id = 1;
+
+    // ControllerName is the name of the controller.
+    string controller_name = 2;
+}
