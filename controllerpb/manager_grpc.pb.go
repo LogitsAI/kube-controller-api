@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v4.25.1
-// source: manager.proto
+// source: kube_controller_api/manager.proto
 
 package controllerpb
 
@@ -38,7 +38,7 @@ func NewControllerManagerClient(cc grpc.ClientConnInterface) ControllerManagerCl
 
 func (c *controllerManagerClient) CreateManager(ctx context.Context, in *CreateManagerRequest, opts ...grpc.CallOption) (*CreateManagerResponse, error) {
 	out := new(CreateManagerResponse)
-	err := c.cc.Invoke(ctx, "/controller.ControllerManager/CreateManager", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kube_controller_api.ControllerManager/CreateManager", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *controllerManagerClient) CreateManager(ctx context.Context, in *CreateM
 }
 
 func (c *controllerManagerClient) ReconcileLoop(ctx context.Context, opts ...grpc.CallOption) (ControllerManager_ReconcileLoopClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ControllerManager_ServiceDesc.Streams[0], "/controller.ControllerManager/ReconcileLoop", opts...)
+	stream, err := c.cc.NewStream(ctx, &ControllerManager_ServiceDesc.Streams[0], "/kube_controller_api.ControllerManager/ReconcileLoop", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func _ControllerManager_CreateManager_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/controller.ControllerManager/CreateManager",
+		FullMethod: "/kube_controller_api.ControllerManager/CreateManager",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ControllerManagerServer).CreateManager(ctx, req.(*CreateManagerRequest))
@@ -158,7 +158,7 @@ func (x *controllerManagerReconcileLoopServer) Recv() (*ReconcileLoopRequest, er
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ControllerManager_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "controller.ControllerManager",
+	ServiceName: "kube_controller_api.ControllerManager",
 	HandlerType: (*ControllerManagerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -174,5 +174,5 @@ var ControllerManager_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "manager.proto",
+	Metadata: "kube_controller_api/manager.proto",
 }

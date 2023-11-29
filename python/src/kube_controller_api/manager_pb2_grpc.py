@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import manager_pb2 as manager__pb2
+from kube_controller_api import manager_pb2 as kube__controller__api_dot_manager__pb2
 
 
 class ControllerManagerStub(object):
@@ -15,14 +15,14 @@ class ControllerManagerStub(object):
             channel: A grpc.Channel.
         """
         self.CreateManager = channel.unary_unary(
-                '/controller.ControllerManager/CreateManager',
-                request_serializer=manager__pb2.CreateManagerRequest.SerializeToString,
-                response_deserializer=manager__pb2.CreateManagerResponse.FromString,
+                '/kube_controller_api.ControllerManager/CreateManager',
+                request_serializer=kube__controller__api_dot_manager__pb2.CreateManagerRequest.SerializeToString,
+                response_deserializer=kube__controller__api_dot_manager__pb2.CreateManagerResponse.FromString,
                 )
         self.ReconcileLoop = channel.stream_stream(
-                '/controller.ControllerManager/ReconcileLoop',
-                request_serializer=manager__pb2.ReconcileLoopRequest.SerializeToString,
-                response_deserializer=manager__pb2.ReconcileLoopResponse.FromString,
+                '/kube_controller_api.ControllerManager/ReconcileLoop',
+                request_serializer=kube__controller__api_dot_manager__pb2.ReconcileLoopRequest.SerializeToString,
+                response_deserializer=kube__controller__api_dot_manager__pb2.ReconcileLoopResponse.FromString,
                 )
 
 
@@ -48,17 +48,17 @@ def add_ControllerManagerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateManager': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateManager,
-                    request_deserializer=manager__pb2.CreateManagerRequest.FromString,
-                    response_serializer=manager__pb2.CreateManagerResponse.SerializeToString,
+                    request_deserializer=kube__controller__api_dot_manager__pb2.CreateManagerRequest.FromString,
+                    response_serializer=kube__controller__api_dot_manager__pb2.CreateManagerResponse.SerializeToString,
             ),
             'ReconcileLoop': grpc.stream_stream_rpc_method_handler(
                     servicer.ReconcileLoop,
-                    request_deserializer=manager__pb2.ReconcileLoopRequest.FromString,
-                    response_serializer=manager__pb2.ReconcileLoopResponse.SerializeToString,
+                    request_deserializer=kube__controller__api_dot_manager__pb2.ReconcileLoopRequest.FromString,
+                    response_serializer=kube__controller__api_dot_manager__pb2.ReconcileLoopResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'controller.ControllerManager', rpc_method_handlers)
+            'kube_controller_api.ControllerManager', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -77,9 +77,9 @@ class ControllerManager(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/controller.ControllerManager/CreateManager',
-            manager__pb2.CreateManagerRequest.SerializeToString,
-            manager__pb2.CreateManagerResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/kube_controller_api.ControllerManager/CreateManager',
+            kube__controller__api_dot_manager__pb2.CreateManagerRequest.SerializeToString,
+            kube__controller__api_dot_manager__pb2.CreateManagerResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -94,8 +94,8 @@ class ControllerManager(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(request_iterator, target, '/controller.ControllerManager/ReconcileLoop',
-            manager__pb2.ReconcileLoopRequest.SerializeToString,
-            manager__pb2.ReconcileLoopResponse.FromString,
+        return grpc.experimental.stream_stream(request_iterator, target, '/kube_controller_api.ControllerManager/ReconcileLoop',
+            kube__controller__api_dot_manager__pb2.ReconcileLoopRequest.SerializeToString,
+            kube__controller__api_dot_manager__pb2.ReconcileLoopResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

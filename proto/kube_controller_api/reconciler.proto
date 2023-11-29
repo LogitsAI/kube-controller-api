@@ -4,7 +4,7 @@ option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
 
 import "google/protobuf/duration.proto";
 
-package controller;
+package kube_controller_api;
 
 message ReconcileResult {
     // Error is the error message, if any.

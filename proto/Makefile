@@ -9,11 +9,11 @@ tools:
 	@python3 -m pip install grpcio grpcio-tools
 
 build: tools
-	protoc -I=controller \
-		--go_out=../controllerpb --go_opt=paths=source_relative \
-		--go-grpc_out=../controllerpb --go-grpc_opt=paths=source_relative \
-		controller/*.proto
-	python3 -m grpc_tools.protoc -Icontroller \
-	    --python_out=../client/python --pyi_out=../client/python \
-		--grpc_python_out=../client/python \
-		controller/*.proto
+	protoc -I=. \
+		--go_out=../controllerpb --go_opt=module="github.com/LogitsAI/kube-controller-api/controllerpb" \
+		--go-grpc_out=../controllerpb --go-grpc_opt=module="github.com/LogitsAI/kube-controller-api/controllerpb" \
+		kube_controller_api/*.proto
+	python3 -m grpc_tools.protoc -I. \
+	    --python_out=../python/src --pyi_out=../python/src \
+		--grpc_python_out=../python/src \
+		kube_controller_api/*.proto

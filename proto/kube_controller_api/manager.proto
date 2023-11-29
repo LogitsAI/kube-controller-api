@@ -2,10 +2,10 @@ syntax = "proto3";
 
 option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
 
-import "controller.proto";
-import "reconciler.proto";
+import "kube_controller_api/controller.proto";
+import "kube_controller_api/reconciler.proto";
 
-package controller;
+package kube_controller_api;
 
 service ControllerManager {
     // CreateManager creates a Controller Manager with the given config.

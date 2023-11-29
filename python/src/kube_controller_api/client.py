@@ -5,10 +5,12 @@ from typing import Callable, Coroutine, Any
 
 import grpc.aio
 
-import manager_pb2_grpc
-import manager_pb2
-import controller_pb2
-import reconciler_pb2
+from . import (
+    manager_pb2_grpc,
+    manager_pb2,
+    controller_pb2,
+    reconciler_pb2,
+)
 
 class ControllerManagerConfig:
     def __init__(self, name):

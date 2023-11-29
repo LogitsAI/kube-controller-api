@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
 
-package controller;
+package kube_controller_api;
 
 message ControllerConfig {
     // Name is the name of the controller.

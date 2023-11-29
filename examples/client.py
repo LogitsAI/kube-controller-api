@@ -1,9 +1,9 @@
 import sys
 import asyncio
 
-sys.path.append("./client/python")
+sys.path.append("./python/src")
 
-from controller_api import (
+from kube_controller_api.client import (
     Connection,
     ControllerManagerConfig,
     ControllerConfig,
