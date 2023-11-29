@@ -18,7 +18,12 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "protobuf",
+    "grpcio",
+]
 
 [project.urls]
 Homepage = "https://github.com/LogitsAI/kube-controller-api"
 Issues = "https://github.com/LogitsAI/kube-controller-api/issues"
+Repository = "https://github.com/LogitsAI/kube-controller-api.git"
