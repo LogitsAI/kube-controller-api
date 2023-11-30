@@ -2,6 +2,7 @@ import json
 import contextlib
 from datetime import timedelta
 from typing import Callable, Coroutine, Any
+from dataclasses import dataclass, field
 
 import grpc.aio
 
@@ -12,22 +13,10 @@ from . import (
     reconciler_pb2,
 )
 
-class ControllerManagerConfig:
-    def __init__(self, name):
-        self.name = name
-        self.controllers = []
-
-    def to_proto(self):
-        request = manager_pb2.CreateManagerRequest(name=self.name)
-        for controller in self.controllers:
-            request.controllers.add().CopyFrom(controller.to_proto())
-        return request
-
-
+@dataclass
 class ControllerConfig:
-    def __init__(self, name):
-        self.name = name
-        self.parent = None
+    name: str
+    parent: controller_pb2.GroupVersionKind = None
 
     def set_parent(self, group, version, kind):
         self.parent = controller_pb2.GroupVersionKind(group=group, version=version, kind=kind)
@@ -39,15 +28,27 @@ class ControllerConfig:
         return controller
 
 
+@dataclass
+class ControllerManagerConfig:
+    name: str
+    controllers: list[ControllerConfig] = field(default_factory=list)
+
+    def to_proto(self):
+        request = manager_pb2.CreateManagerRequest(name=self.name)
+        for controller in self.controllers:
+            request.controllers.add().CopyFrom(controller.to_proto())
+        return request
+
+
+@dataclass
 class ReconcileRequest:
-    def __init__(self, object):
-        self.object = object
+    object: Any
 
 
+@dataclass
 class ReconcileResult:
-    def __init__(self, requeue: bool = False, requeue_after: timedelta | None = None):
-        self.requeue = requeue
-        self.requeue_after = requeue_after
+    requeue: bool = False
+    requeue_after: timedelta | None = None
 
     def to_proto(self):
         result = reconciler_pb2.ReconcileResult()
@@ -74,7 +75,8 @@ class Connection(contextlib.AbstractAsyncContextManager):
         manager = await self.stub.CreateManager(config.to_proto())
         return manager
 
-    async def reconcile_loop(self, manager_id, controller_name, reconcile_func: Callable[[ReconcileRequest], Coroutine[Any, Any, ReconcileResult]]):
+    async def reconcile_loop(self, manager_id, controller_name,
+                             reconcile_func: Callable[[ReconcileRequest], Coroutine[Any, Any, ReconcileResult]]):
         stream = self.stub.ReconcileLoop()
         
         # Specify the manager ID and controller name.
