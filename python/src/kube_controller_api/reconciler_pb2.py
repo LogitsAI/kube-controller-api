@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$kube_controller_api/reconciler.proto\x12\x13kube_controller_api\x1a\x1egoogle/protobuf/duration.proto\"r\n\x0fReconcileResult\x12\x12\n\x05\x65rror\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x0f\n\x07requeue\x18\x02 \x01(\x08\x12\x30\n\rrequeue_after\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\n\x06_error\"8\n\tWorkQueue\x12\x12\n\nmanager_id\x18\x01 \x01(\t\x12\x17\n\x0f\x63ontroller_name\x18\x02 \x01(\tB6Z4github.com/LogitsAI/kube-controller-api/controllerpbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$kube_controller_api/reconciler.proto\x12\x13kube_controller_api\x1a\x1egoogle/protobuf/duration.proto\"r\n\x0fReconcileResult\x12\x12\n\x05\x65rror\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x0f\n\x07requeue\x18\x02 \x01(\x08\x12\x30\n\rrequeue_after\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\n\x06_error\"$\n\tWorkQueue\x12\x17\n\x0f\x63ontroller_name\x18\x01 \x01(\tB6Z4github.com/LogitsAI/kube-controller-api/controllerpbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -25,5 +25,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_RECONCILERESULT']._serialized_start=93
   _globals['_RECONCILERESULT']._serialized_end=207
   _globals['_WORKQUEUE']._serialized_start=209
-  _globals['_WORKQUEUE']._serialized_end=265
+  _globals['_WORKQUEUE']._serialized_end=245
 # @@protoc_insertion_point(module_scope)

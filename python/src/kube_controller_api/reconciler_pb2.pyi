@@ -16,9 +16,7 @@ class ReconcileResult(_message.Message):
     def __init__(self, error: _Optional[str] = ..., requeue: bool = ..., requeue_after: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
 class WorkQueue(_message.Message):
-    __slots__ = ["manager_id", "controller_name"]
-    MANAGER_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ["controller_name"]
     CONTROLLER_NAME_FIELD_NUMBER: _ClassVar[int]
-    manager_id: str
     controller_name: str
-    def __init__(self, manager_id: _Optional[str] = ..., controller_name: _Optional[str] = ...) -> None: ...
+    def __init__(self, controller_name: _Optional[str] = ...) -> None: ...

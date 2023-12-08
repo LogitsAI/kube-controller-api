@@ -14,10 +14,10 @@ class ControllerManagerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.CreateManager = channel.unary_unary(
-                '/kube_controller_api.ControllerManager/CreateManager',
-                request_serializer=kube__controller__api_dot_manager__pb2.CreateManagerRequest.SerializeToString,
-                response_deserializer=kube__controller__api_dot_manager__pb2.CreateManagerResponse.FromString,
+        self.Start = channel.unary_unary(
+                '/kube_controller_api.ControllerManager/Start',
+                request_serializer=kube__controller__api_dot_manager__pb2.StartRequest.SerializeToString,
+                response_deserializer=kube__controller__api_dot_manager__pb2.StartResponse.FromString,
                 )
         self.ReconcileLoop = channel.stream_stream(
                 '/kube_controller_api.ControllerManager/ReconcileLoop',
@@ -29,8 +29,13 @@ class ControllerManagerStub(object):
 class ControllerManagerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def CreateManager(self, request, context):
-        """CreateManager creates a Controller Manager with the given config.
+    def Start(self, request, context):
+        """Start configures the Controller Manager and starts it.
+
+        If the Controller Manager has already been started, for example if there
+        are multiple worker clients or a worker restarted, this will succeed
+        idempotently as long as the configuration is the same. If the config is
+        different, it will return an error.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -46,10 +51,10 @@ class ControllerManagerServicer(object):
 
 def add_ControllerManagerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'CreateManager': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateManager,
-                    request_deserializer=kube__controller__api_dot_manager__pb2.CreateManagerRequest.FromString,
-                    response_serializer=kube__controller__api_dot_manager__pb2.CreateManagerResponse.SerializeToString,
+            'Start': grpc.unary_unary_rpc_method_handler(
+                    servicer.Start,
+                    request_deserializer=kube__controller__api_dot_manager__pb2.StartRequest.FromString,
+                    response_serializer=kube__controller__api_dot_manager__pb2.StartResponse.SerializeToString,
             ),
             'ReconcileLoop': grpc.stream_stream_rpc_method_handler(
                     servicer.ReconcileLoop,
@@ -67,7 +72,7 @@ class ControllerManager(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def CreateManager(request,
+    def Start(request,
             target,
             options=(),
             channel_credentials=None,
@@ -77,9 +82,9 @@ class ControllerManager(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/kube_controller_api.ControllerManager/CreateManager',
-            kube__controller__api_dot_manager__pb2.CreateManagerRequest.SerializeToString,
-            kube__controller__api_dot_manager__pb2.CreateManagerResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/kube_controller_api.ControllerManager/Start',
+            kube__controller__api_dot_manager__pb2.StartRequest.SerializeToString,
+            kube__controller__api_dot_manager__pb2.StartResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

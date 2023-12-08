@@ -34,7 +34,7 @@ class ControllerManagerConfig:
     controllers: list[ControllerConfig] = field(default_factory=list)
 
     def to_proto(self):
-        request = manager_pb2.CreateManagerRequest(name=self.name)
+        request = manager_pb2.StartRequest()
         for controller in self.controllers:
             request.controllers.add().CopyFrom(controller.to_proto())
         return request
@@ -71,17 +71,17 @@ class Connection(contextlib.AbstractAsyncContextManager):
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.channel.__aexit__(exc_type, exc_value, traceback)
     
-    async def create_manager(self, config: ControllerManagerConfig):
-        manager = await self.stub.CreateManager(config.to_proto())
+    async def start_manager(self, config: ControllerManagerConfig):
+        manager = await self.stub.Start(config.to_proto())
         return manager
 
-    async def reconcile_loop(self, manager_id, controller_name,
+    async def reconcile_loop(self, controller_name,
                              reconcile_func: Callable[[ReconcileRequest], Coroutine[Any, Any, ReconcileResult]]):
         stream = self.stub.ReconcileLoop()
         
         # Specify the manager ID and controller name.
         await stream.write(manager_pb2.ReconcileLoopRequest(
-            subscribe=reconciler_pb2.WorkQueue(manager_id=manager_id, controller_name=controller_name),
+            subscribe=reconciler_pb2.WorkQueue(controller_name=controller_name),
         ))
 
         # Process objects from the work queue.

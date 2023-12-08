@@ -8,7 +8,7 @@ tools:
 	@# Install Python plugins for the protobuf compiler.
 	@python3 -m pip install grpcio grpcio-tools
 
-build: tools
+generate: tools
 	protoc -I=. \
 		--go_out=../controllerpb --go_opt=module="github.com/LogitsAI/kube-controller-api/controllerpb" \
 		--go-grpc_out=../controllerpb --go-grpc_opt=module="github.com/LogitsAI/kube-controller-api/controllerpb" \

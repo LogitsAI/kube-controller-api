@@ -28,10 +28,10 @@ async def main():
         config.controllers.append(controller)
 
         # Create a remote ControllerManager instance on the server.
-        manager = await conn.create_manager(config)
+        await conn.start_manager(config)
 
         # Start processing reconcile requests from the server's work queue.
-        await conn.reconcile_loop(manager.id, controller.name, reconcile_pod)
+        await conn.reconcile_loop(controller.name, reconcile_pod)
 
 if __name__ == "__main__":
     asyncio.run(main())

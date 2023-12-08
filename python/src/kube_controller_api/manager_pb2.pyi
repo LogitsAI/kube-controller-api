@@ -7,19 +7,15 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class CreateManagerRequest(_message.Message):
-    __slots__ = ["name", "controllers"]
-    NAME_FIELD_NUMBER: _ClassVar[int]
+class StartRequest(_message.Message):
+    __slots__ = ["controllers"]
     CONTROLLERS_FIELD_NUMBER: _ClassVar[int]
-    name: str
     controllers: _containers.RepeatedCompositeFieldContainer[_controller_pb2.ControllerConfig]
-    def __init__(self, name: _Optional[str] = ..., controllers: _Optional[_Iterable[_Union[_controller_pb2.ControllerConfig, _Mapping]]] = ...) -> None: ...
+    def __init__(self, controllers: _Optional[_Iterable[_Union[_controller_pb2.ControllerConfig, _Mapping]]] = ...) -> None: ...
 
-class CreateManagerResponse(_message.Message):
-    __slots__ = ["id"]
-    ID_FIELD_NUMBER: _ClassVar[int]
-    id: str
-    def __init__(self, id: _Optional[str] = ...) -> None: ...
+class StartResponse(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
 
 class ReconcileLoopRequest(_message.Message):
     __slots__ = ["subscribe", "acknowledge"]

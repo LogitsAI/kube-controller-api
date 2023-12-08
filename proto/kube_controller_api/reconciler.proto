@@ -21,10 +21,6 @@ message ReconcileResult {
 }
 
 message WorkQueue {
-    // ManagerID is the unique ID of the Controller Manager,
-    // as returned by GetManager().
-    string manager_id = 1;
-
     // ControllerName is the name of the controller.
-    string controller_name = 2;
+    string controller_name = 1;
 }

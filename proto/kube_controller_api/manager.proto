@@ -8,23 +8,23 @@ import "kube_controller_api/reconciler.proto";
 package kube_controller_api;
 
 service ControllerManager {
-    // CreateManager creates a Controller Manager with the given config.
-    rpc CreateManager(CreateManagerRequest) returns (CreateManagerResponse) {}
+    // Start configures the Controller Manager and starts it.
+    //
+    // If the Controller Manager has already been started, for example if there
+    // are multiple worker clients or a worker restarted, this will succeed
+    // idempotently as long as the configuration is the same. If the config is
+    // different, it will return an error.
+    rpc Start(StartRequest) returns (StartResponse) {}
 
     // ReconcileLoop returns the next object to be processed by the controller.
     rpc ReconcileLoop(stream ReconcileLoopRequest) returns (stream ReconcileLoopResponse) {}
 }
 
-message CreateManagerRequest {
-    // Name is the name of the Controller Manager.
-    string name = 1;
-
-    repeated ControllerConfig controllers = 2;
+message StartRequest {
+    repeated ControllerConfig controllers = 1;
 }
 
-message CreateManagerResponse {
-    // ID is the unique ID of the Controller Manager.
-    string id = 1;
+message StartResponse {
 }
 
 // ReconcileLoop() is a bidirectional streaming call.

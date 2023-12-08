@@ -22,8 +22,13 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ControllerManagerClient interface {
-	// CreateManager creates a Controller Manager with the given config.
-	CreateManager(ctx context.Context, in *CreateManagerRequest, opts ...grpc.CallOption) (*CreateManagerResponse, error)
+	// Start configures the Controller Manager and starts it.
+	//
+	// If the Controller Manager has already been started, for example if there
+	// are multiple worker clients or a worker restarted, this will succeed
+	// idempotently as long as the configuration is the same. If the config is
+	// different, it will return an error.
+	Start(ctx context.Context, in *StartRequest, opts ...grpc.CallOption) (*StartResponse, error)
 	// ReconcileLoop returns the next object to be processed by the controller.
 	ReconcileLoop(ctx context.Context, opts ...grpc.CallOption) (ControllerManager_ReconcileLoopClient, error)
 }
@@ -36,9 +41,9 @@ func NewControllerManagerClient(cc grpc.ClientConnInterface) ControllerManagerCl
 	return &controllerManagerClient{cc}
 }
 
-func (c *controllerManagerClient) CreateManager(ctx context.Context, in *CreateManagerRequest, opts ...grpc.CallOption) (*CreateManagerResponse, error) {
-	out := new(CreateManagerResponse)
-	err := c.cc.Invoke(ctx, "/kube_controller_api.ControllerManager/CreateManager", in, out, opts...)
+func (c *controllerManagerClient) Start(ctx context.Context, in *StartRequest, opts ...grpc.CallOption) (*StartResponse, error) {
+	out := new(StartResponse)
+	err := c.cc.Invoke(ctx, "/kube_controller_api.ControllerManager/Start", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +85,13 @@ func (x *controllerManagerReconcileLoopClient) Recv() (*ReconcileLoopResponse, e
 // All implementations must embed UnimplementedControllerManagerServer
 // for forward compatibility
 type ControllerManagerServer interface {
-	// CreateManager creates a Controller Manager with the given config.
-	CreateManager(context.Context, *CreateManagerRequest) (*CreateManagerResponse, error)
+	// Start configures the Controller Manager and starts it.
+	//
+	// If the Controller Manager has already been started, for example if there
+	// are multiple worker clients or a worker restarted, this will succeed
+	// idempotently as long as the configuration is the same. If the config is
+	// different, it will return an error.
+	Start(context.Context, *StartRequest) (*StartResponse, error)
 	// ReconcileLoop returns the next object to be processed by the controller.
 	ReconcileLoop(ControllerManager_ReconcileLoopServer) error
 	mustEmbedUnimplementedControllerManagerServer()
@@ -91,8 +101,8 @@ type ControllerManagerServer interface {
 type UnimplementedControllerManagerServer struct {
 }
 
-func (UnimplementedControllerManagerServer) CreateManager(context.Context, *CreateManagerRequest) (*CreateManagerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateManager not implemented")
+func (UnimplementedControllerManagerServer) Start(context.Context, *StartRequest) (*StartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Start not implemented")
 }
 func (UnimplementedControllerManagerServer) ReconcileLoop(ControllerManager_ReconcileLoopServer) error {
 	return status.Errorf(codes.Unimplemented, "method ReconcileLoop not implemented")
@@ -110,20 +120,20 @@ func RegisterControllerManagerServer(s grpc.ServiceRegistrar, srv ControllerMana
 	s.RegisterService(&ControllerManager_ServiceDesc, srv)
 }
 
-func _ControllerManager_CreateManager_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateManagerRequest)
+func _ControllerManager_Start_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControllerManagerServer).CreateManager(ctx, in)
+		return srv.(ControllerManagerServer).Start(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kube_controller_api.ControllerManager/CreateManager",
+		FullMethod: "/kube_controller_api.ControllerManager/Start",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerManagerServer).CreateManager(ctx, req.(*CreateManagerRequest))
+		return srv.(ControllerManagerServer).Start(ctx, req.(*StartRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -162,8 +172,8 @@ var ControllerManager_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ControllerManagerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateManager",
-			Handler:    _ControllerManager_CreateManager_Handler,
+			MethodName: "Start",
+			Handler:    _ControllerManager_Start_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

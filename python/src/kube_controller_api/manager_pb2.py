@@ -15,7 +15,7 @@ from kube_controller_api import controller_pb2 as kube__controller__api_dot_cont
 from kube_controller_api import reconciler_pb2 as kube__controller__api_dot_reconciler__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!kube_controller_api/manager.proto\x12\x13kube_controller_api\x1a$kube_controller_api/controller.proto\x1a$kube_controller_api/reconciler.proto\"`\n\x14\x43reateManagerRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12:\n\x0b\x63ontrollers\x18\x02 \x03(\x0b\x32%.kube_controller_api.ControllerConfig\"#\n\x15\x43reateManagerResponse\x12\n\n\x02id\x18\x01 \x01(\t\"\x8f\x01\n\x14ReconcileLoopRequest\x12\x33\n\tsubscribe\x18\x01 \x01(\x0b\x32\x1e.kube_controller_api.WorkQueueH\x00\x12;\n\x0b\x61\x63knowledge\x18\x02 \x01(\x0b\x32$.kube_controller_api.ReconcileResultH\x00\x42\x05\n\x03msg\"\'\n\x15ReconcileLoopResponse\x12\x0e\n\x06object\x18\x01 \x01(\x0c\x32\xeb\x01\n\x11\x43ontrollerManager\x12h\n\rCreateManager\x12).kube_controller_api.CreateManagerRequest\x1a*.kube_controller_api.CreateManagerResponse\"\x00\x12l\n\rReconcileLoop\x12).kube_controller_api.ReconcileLoopRequest\x1a*.kube_controller_api.ReconcileLoopResponse\"\x00(\x01\x30\x01\x42\x36Z4github.com/LogitsAI/kube-controller-api/controllerpbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!kube_controller_api/manager.proto\x12\x13kube_controller_api\x1a$kube_controller_api/controller.proto\x1a$kube_controller_api/reconciler.proto\"J\n\x0cStartRequest\x12:\n\x0b\x63ontrollers\x18\x01 \x03(\x0b\x32%.kube_controller_api.ControllerConfig\"\x0f\n\rStartResponse\"\x8f\x01\n\x14ReconcileLoopRequest\x12\x33\n\tsubscribe\x18\x01 \x01(\x0b\x32\x1e.kube_controller_api.WorkQueueH\x00\x12;\n\x0b\x61\x63knowledge\x18\x02 \x01(\x0b\x32$.kube_controller_api.ReconcileResultH\x00\x42\x05\n\x03msg\"\'\n\x15ReconcileLoopResponse\x12\x0e\n\x06object\x18\x01 \x01(\x0c\x32\xd3\x01\n\x11\x43ontrollerManager\x12P\n\x05Start\x12!.kube_controller_api.StartRequest\x1a\".kube_controller_api.StartResponse\"\x00\x12l\n\rReconcileLoop\x12).kube_controller_api.ReconcileLoopRequest\x1a*.kube_controller_api.ReconcileLoopResponse\"\x00(\x01\x30\x01\x42\x36Z4github.com/LogitsAI/kube-controller-api/controllerpbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -23,14 +23,14 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'kube_controller_api.manager
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   DESCRIPTOR._serialized_options = b'Z4github.com/LogitsAI/kube-controller-api/controllerpb'
-  _globals['_CREATEMANAGERREQUEST']._serialized_start=134
-  _globals['_CREATEMANAGERREQUEST']._serialized_end=230
-  _globals['_CREATEMANAGERRESPONSE']._serialized_start=232
-  _globals['_CREATEMANAGERRESPONSE']._serialized_end=267
-  _globals['_RECONCILELOOPREQUEST']._serialized_start=270
-  _globals['_RECONCILELOOPREQUEST']._serialized_end=413
-  _globals['_RECONCILELOOPRESPONSE']._serialized_start=415
-  _globals['_RECONCILELOOPRESPONSE']._serialized_end=454
-  _globals['_CONTROLLERMANAGER']._serialized_start=457
-  _globals['_CONTROLLERMANAGER']._serialized_end=692
+  _globals['_STARTREQUEST']._serialized_start=134
+  _globals['_STARTREQUEST']._serialized_end=208
+  _globals['_STARTRESPONSE']._serialized_start=210
+  _globals['_STARTRESPONSE']._serialized_end=225
+  _globals['_RECONCILELOOPREQUEST']._serialized_start=228
+  _globals['_RECONCILELOOPREQUEST']._serialized_end=371
+  _globals['_RECONCILELOOPRESPONSE']._serialized_start=373
+  _globals['_RECONCILELOOPRESPONSE']._serialized_end=412
+  _globals['_CONTROLLERMANAGER']._serialized_start=415
+  _globals['_CONTROLLERMANAGER']._serialized_end=626
 # @@protoc_insertion_point(module_scope)

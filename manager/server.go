@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"github.com/LogitsAI/kube-controller-api/controllerpb"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/rest"
@@ -18,14 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
-
-type managerEntry struct {
-	id      string
-	name    string
-	manager manager.Manager
-
-	controllers map[string]controllerEntry
-}
 
 type controllerEntry struct {
 	name       string
@@ -38,41 +30,39 @@ type ControllerManagerServer struct {
 	kubeConfig    *rest.Config
 	signalHandler context.Context
 
-	mu       sync.RWMutex
-	managers map[string]managerEntry
+	mu            sync.RWMutex
+	manager       manager.Manager
+	managerConfig *controllerpb.StartRequest
+	controllers   map[string]controllerEntry
 }
 
 func NewControllerManagerServer(kubeConfig *rest.Config) *ControllerManagerServer {
 	return &ControllerManagerServer{
 		kubeConfig:    kubeConfig,
 		signalHandler: signals.SetupSignalHandler(),
-
-		managers: make(map[string]managerEntry),
 	}
 }
 
-func (s *ControllerManagerServer) addManager(name string, mgr manager.Manager, controllers map[string]controllerEntry) string {
-	id := uuid.New().String()
-
+func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.StartRequest) (*controllerpb.StartResponse, error) {
 	s.mu.Lock()
-	s.managers[id] = managerEntry{
-		id:          id,
-		name:        name,
-		manager:     mgr,
-		controllers: controllers,
+	defer s.mu.Unlock()
+
+	if s.manager != nil {
+		// The manager was already started. Check if the config is the same.
+		if !proto.Equal(in, s.managerConfig) {
+			return nil, status.Errorf(codes.AlreadyExists, "manager already started with different config")
+		}
+		return &controllerpb.StartResponse{}, nil
 	}
-	s.mu.Unlock()
 
-	return id
-}
-
-func (s *ControllerManagerServer) CreateManager(ctx context.Context, in *controllerpb.CreateManagerRequest) (*controllerpb.CreateManagerResponse, error) {
 	mgr, err := manager.New(s.kubeConfig, manager.Options{})
 	if err != nil {
 		return nil, err
 	}
+	s.manager = mgr
+	s.managerConfig = in
 
-	controllers := map[string]controllerEntry{}
+	s.controllers = map[string]controllerEntry{}
 	for _, controller := range in.Controllers {
 		bldr := builder.ControllerManagedBy(mgr)
 
@@ -91,28 +81,27 @@ func (s *ControllerManagerServer) CreateManager(ctx context.Context, in *control
 		if err := bldr.Complete(reconciler); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "failed to create controller %q: %v", controller.Name, err)
 		}
-		controllers[controller.Name] = controllerEntry{
+		s.controllers[controller.Name] = controllerEntry{
 			name:       controller.Name,
 			reconciler: reconciler,
 		}
 		slog.Debug("Created controller", "name", controller.Name)
 	}
 
+	slog.Info("Starting manager...")
 	go func() {
 		if err := mgr.Start(s.signalHandler); err != nil {
-			slog.Error("failed to start manager", "name", in.Name, "error", err)
+			slog.Error("failed to start manager", "error", err)
 		}
 	}()
 
-	slog.Info("Started manager", "name", in.Name)
-	id := s.addManager(in.Name, mgr, controllers)
-
-	return &controllerpb.CreateManagerResponse{
-		Id: id,
-	}, nil
+	return &controllerpb.StartResponse{}, nil
 }
 
 func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerManager_ReconcileLoopServer) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	// Look for the first message, which should be a Subscribe.
 	req, err := stream.Recv()
 	if err == io.EOF {
@@ -125,13 +114,11 @@ func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerMa
 	if !ok {
 		return status.Errorf(codes.InvalidArgument, "first message should be a subscribe message")
 	}
-	// Find the specified manager.
-	mgrEntry, ok := s.managers[subMsg.Subscribe.GetManagerId()]
-	if !ok {
-		return status.Errorf(codes.NotFound, "manager not found")
+	if s.manager == nil {
+		return status.Errorf(codes.NotFound, "manager has not been started")
 	}
 	// Find the specified controller within that manager.
-	controller, ok := mgrEntry.controllers[subMsg.Subscribe.GetControllerName()]
+	controller, ok := s.controllers[subMsg.Subscribe.GetControllerName()]
 	if !ok {
 		return status.Errorf(codes.NotFound, "controller not found")
 	}
