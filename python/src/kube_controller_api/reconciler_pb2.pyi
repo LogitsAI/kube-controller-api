@@ -6,17 +6,19 @@ from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Opti
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ReconcileResult(_message.Message):
-    __slots__ = ["error", "requeue", "requeue_after"]
+    __slots__ = ("error", "requeue", "requeue_after", "status")
     ERROR_FIELD_NUMBER: _ClassVar[int]
     REQUEUE_FIELD_NUMBER: _ClassVar[int]
     REQUEUE_AFTER_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
     error: str
     requeue: bool
     requeue_after: _duration_pb2.Duration
-    def __init__(self, error: _Optional[str] = ..., requeue: bool = ..., requeue_after: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    status: bytes
+    def __init__(self, error: _Optional[str] = ..., requeue: bool = ..., requeue_after: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., status: _Optional[bytes] = ...) -> None: ...
 
 class WorkQueue(_message.Message):
-    __slots__ = ["controller_name"]
+    __slots__ = ("controller_name",)
     CONTROLLER_NAME_FIELD_NUMBER: _ClassVar[int]
     controller_name: str
     def __init__(self, controller_name: _Optional[str] = ...) -> None: ...

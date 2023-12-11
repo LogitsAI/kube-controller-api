@@ -43,6 +43,14 @@ func NewControllerManagerServer(kubeConfig *rest.Config) *ControllerManagerServe
 	}
 }
 
+func (s *ControllerManagerServer) getController(name string) (controllerEntry, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	controller, ok := s.controllers[name]
+	return controller, ok
+}
+
 func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.StartRequest) (*controllerpb.StartResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -99,9 +107,6 @@ func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.St
 }
 
 func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerManager_ReconcileLoopServer) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	// Look for the first message, which should be a Subscribe.
 	req, err := stream.Recv()
 	if err == io.EOF {
@@ -115,10 +120,10 @@ func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerMa
 		return status.Errorf(codes.InvalidArgument, "first message should be a subscribe message")
 	}
 	if s.manager == nil {
-		return status.Errorf(codes.NotFound, "manager has not been started")
+		return status.Errorf(codes.FailedPrecondition, "manager has not been started")
 	}
 	// Find the specified controller within that manager.
-	controller, ok := s.controllers[subMsg.Subscribe.GetControllerName()]
+	controller, ok := s.getController(subMsg.Subscribe.GetControllerName())
 	if !ok {
 		return status.Errorf(codes.NotFound, "controller not found")
 	}

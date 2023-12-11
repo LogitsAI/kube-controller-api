@@ -18,6 +18,10 @@ message ReconcileResult {
     // RequeueAfter indicates that the object should be requeued after the
     // given delay, if set to a value greater than 0.
     google.protobuf.Duration requeue_after = 3;
+
+    // Status is the new value to set for the status subresource, if specified.
+    // It should be the JSON-encoded value of the `.status` field.
+    optional bytes status = 4;
 }
 
 message WorkQueue {

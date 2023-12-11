@@ -16,7 +16,11 @@ async def reconcile_example(request: ReconcileRequest) -> ReconcileResult:
     name = request.object["metadata"]["name"]
     print(f"Example {namespace}/{name} reconciled")
 
-    return ReconcileResult()
+    return ReconcileResult(
+        status={
+            "output": request.object["spec"]["input"] + " output",
+        },
+    )
 
 async def main():
     # Create a gRPC channel bound to the server address.

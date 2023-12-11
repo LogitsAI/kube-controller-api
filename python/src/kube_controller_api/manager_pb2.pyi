@@ -8,17 +8,17 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class StartRequest(_message.Message):
-    __slots__ = ["controllers"]
+    __slots__ = ("controllers",)
     CONTROLLERS_FIELD_NUMBER: _ClassVar[int]
     controllers: _containers.RepeatedCompositeFieldContainer[_controller_pb2.ControllerConfig]
     def __init__(self, controllers: _Optional[_Iterable[_Union[_controller_pb2.ControllerConfig, _Mapping]]] = ...) -> None: ...
 
 class StartResponse(_message.Message):
-    __slots__ = []
+    __slots__ = ()
     def __init__(self) -> None: ...
 
 class ReconcileLoopRequest(_message.Message):
-    __slots__ = ["subscribe", "acknowledge"]
+    __slots__ = ("subscribe", "acknowledge")
     SUBSCRIBE_FIELD_NUMBER: _ClassVar[int]
     ACKNOWLEDGE_FIELD_NUMBER: _ClassVar[int]
     subscribe: _reconciler_pb2.WorkQueue
@@ -26,7 +26,7 @@ class ReconcileLoopRequest(_message.Message):
     def __init__(self, subscribe: _Optional[_Union[_reconciler_pb2.WorkQueue, _Mapping]] = ..., acknowledge: _Optional[_Union[_reconciler_pb2.ReconcileResult, _Mapping]] = ...) -> None: ...
 
 class ReconcileLoopResponse(_message.Message):
-    __slots__ = ["object"]
+    __slots__ = ("object",)
     OBJECT_FIELD_NUMBER: _ClassVar[int]
     object: bytes
     def __init__(self, object: _Optional[bytes] = ...) -> None: ...

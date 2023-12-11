@@ -42,18 +42,22 @@ class ControllerManagerConfig:
 @dataclass
 class ReconcileRequest:
     object: Any
+    conn: 'Connection'
 
 
 @dataclass
 class ReconcileResult:
     requeue: bool = False
     requeue_after: timedelta | None = None
+    status: Any | None = None
 
     def to_proto(self):
         result = reconciler_pb2.ReconcileResult()
         result.requeue = self.requeue
         if self.requeue_after is not None:
             result.requeue_after.FromTimedelta(self.requeue_after)
+        if self.status is not None:
+            result.status = json.dumps(self.status).encode("utf-8")
         return result
 
 
@@ -85,7 +89,10 @@ class Connection(contextlib.AbstractAsyncContextManager):
 
         # Process objects from the work queue.
         async for response in stream:
-            request = ReconcileRequest(object=json.loads(response.object))
+            request = ReconcileRequest(
+                conn=self,
+                object=json.loads(response.object),
+            )
 
             try:
                 result = await reconcile_func(request)
