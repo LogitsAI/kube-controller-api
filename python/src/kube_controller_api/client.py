@@ -30,7 +30,6 @@ class ControllerConfig:
 
 @dataclass
 class ControllerManagerConfig:
-    name: str
     controllers: list[ControllerConfig] = field(default_factory=list)
 
     def to_proto(self):

@@ -11,27 +11,27 @@ from kube_controller_api.client import (
     ReconcileResult,
 )
 
-async def reconcile_pod(request: ReconcileRequest) -> ReconcileResult:
+async def reconcile_example(request: ReconcileRequest) -> ReconcileResult:
     namespace = request.object["metadata"]["namespace"]
     name = request.object["metadata"]["name"]
-    print(f"{namespace}/{name} reconciled")
+    print(f"Example {namespace}/{name} reconciled")
 
     return ReconcileResult()
 
 async def main():
     # Create a gRPC channel bound to the server address.
     async with Connection("localhost:8090") as conn:
-        config = ControllerManagerConfig(name="my-manager")
+        config = ControllerManagerConfig()
 
-        controller = ControllerConfig(name="my-controller")
-        controller.set_parent("", "v1", "Pod")
+        controller = ControllerConfig(name="example-controller")
+        controller.set_parent("example.com", "v1", "Example")
         config.controllers.append(controller)
 
         # Create a remote ControllerManager instance on the server.
         await conn.start_manager(config)
 
         # Start processing reconcile requests from the server's work queue.
-        await conn.reconcile_loop(controller.name, reconcile_pod)
+        await conn.reconcile_loop(controller.name, reconcile_example)
 
 if __name__ == "__main__":
     asyncio.run(main())
