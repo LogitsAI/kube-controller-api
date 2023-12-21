@@ -2,9 +2,11 @@ syntax = "proto3";
 
 option go_package = "github.com/LogitsAI/kube-controller-api/controllerpb";
 
+package kube_controller_api;
+
 import "google/protobuf/duration.proto";
 
-package kube_controller_api;
+import "kube_controller_api/controller.proto";
 
 message ReconcileResult {
     // Error is the error message, if any.
@@ -27,4 +29,9 @@ message ReconcileResult {
 message WorkQueue {
     // ControllerName is the name of the controller.
     string controller_name = 1;
+}
+
+message ChildObjects {
+    GroupVersionKind group_version_kind = 1;
+    repeated bytes objects = 2;
 }

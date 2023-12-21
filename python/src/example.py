@@ -9,16 +9,20 @@ from kube_controller_api.client import (
     ControllerConfig,
     ReconcileRequest,
     ReconcileResult,
+    GroupVersionKind,
 )
 
 async def reconcile_example(request: ReconcileRequest) -> ReconcileResult:
-    namespace = request.object["metadata"]["namespace"]
-    name = request.object["metadata"]["name"]
+    namespace = request.parent["metadata"]["namespace"]
+    name = request.parent["metadata"]["name"]
     print(f"Example {namespace}/{name} reconciled")
+
+    config_maps = request.children[GroupVersionKind("", "v1", "ConfigMap")]
 
     return ReconcileResult(
         status={
-            "output": request.object["spec"]["input"] + " output",
+            "output": request.parent["spec"]["input"] + " output",
+            "configMaps": len(config_maps),
         },
     )
 
@@ -27,8 +31,13 @@ async def main():
     async with Connection("localhost:8090") as conn:
         config = ControllerManagerConfig()
 
-        controller = ControllerConfig(name="example-controller")
-        controller.set_parent("example.com", "v1", "Example")
+        controller = ControllerConfig(
+            name="example-controller",
+            parent=GroupVersionKind("example.com", "v1", "Example"),
+            children=[
+                GroupVersionKind("", "v1", "ConfigMap"),
+                ],
+            )
         config.controllers.append(controller)
 
         # Create a remote ControllerManager instance on the server.

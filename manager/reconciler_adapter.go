@@ -10,6 +10,7 @@ import (
 	"github.com/LogitsAI/kube-controller-api/controllerpb"
 	"k8s.io/apimachinery/pkg/api/equality"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -17,15 +18,17 @@ import (
 )
 
 type reconcileRequest struct {
-	ctx    context.Context
-	object *unstructured.Unstructured
-	result chan *controllerpb.ReconcileResult
+	ctx      context.Context
+	parent   *unstructured.Unstructured
+	children map[schema.GroupVersionKind][]unstructured.Unstructured
+	result   chan *controllerpb.ReconcileResult
 }
 
-func newReconcileRequest(ctx context.Context, object *unstructured.Unstructured) reconcileRequest {
+func newReconcileRequest(ctx context.Context, parent *unstructured.Unstructured, children map[schema.GroupVersionKind][]unstructured.Unstructured) reconcileRequest {
 	return reconcileRequest{
-		ctx:    ctx,
-		object: object,
+		ctx:      ctx,
+		parent:   parent,
+		children: children,
 		// Use a buffered channel so we don't need to worry about blocking the sender
 		// in case the receiver has stopped listening.
 		result: make(chan *controllerpb.ReconcileResult, 1),
@@ -34,15 +37,17 @@ func newReconcileRequest(ctx context.Context, object *unstructured.Unstructured)
 
 type reconcilerAdapter struct {
 	slog       *slog.Logger
-	gvk        schema.GroupVersionKind
+	parentGVK  schema.GroupVersionKind
+	childGVKs  []schema.GroupVersionKind
 	kubeClient client.Client
 	requests   chan reconcileRequest
 }
 
-func newReconcilerAdapter(kubeClient client.Client, gvk schema.GroupVersionKind, controllerName string) *reconcilerAdapter {
+func newReconcilerAdapter(kubeClient client.Client, controllerName string, parentGVK schema.GroupVersionKind, childGVKs []schema.GroupVersionKind) *reconcilerAdapter {
 	return &reconcilerAdapter{
-		slog:       slog.With("gvk", gvk, "controller", controllerName),
-		gvk:        gvk,
+		slog:       slog.With("parentGVK", parentGVK, "controller", controllerName),
+		parentGVK:  parentGVK,
+		childGVKs:  childGVKs,
 		kubeClient: kubeClient,
 		requests:   make(chan reconcileRequest),
 	}
@@ -52,9 +57,9 @@ func (r *reconcilerAdapter) Reconcile(ctx context.Context, req reconcile.Request
 	slog := r.slog.With("name", req.NamespacedName)
 
 	// Try to fetch the object.
-	obj := &unstructured.Unstructured{}
-	obj.SetGroupVersionKind(r.gvk)
-	if err := r.kubeClient.Get(ctx, req.NamespacedName, obj); err != nil {
+	parent := &unstructured.Unstructured{}
+	parent.SetGroupVersionKind(r.parentGVK)
+	if err := r.kubeClient.Get(ctx, req.NamespacedName, parent); err != nil {
 		if k8serrors.IsNotFound(err) {
 			slog.DebugContext(ctx, "Ignoring reconcile request for object that no longer exists")
 			return reconcile.Result{}, nil
@@ -63,9 +68,33 @@ func (r *reconcilerAdapter) Reconcile(ctx context.Context, req reconcile.Request
 		return reconcile.Result{}, err
 	}
 
+	// Fetch the child objects.
+	children := map[schema.GroupVersionKind][]unstructured.Unstructured{}
+	for _, childGVK := range r.childGVKs {
+		listGVK := childGVK
+		listGVK.Kind = listGVK.Kind + "List"
+
+		childList := &unstructured.UnstructuredList{}
+		childList.SetGroupVersionKind(listGVK)
+		// TODO: Consider using a label selector.
+		if err := r.kubeClient.List(ctx, childList, client.InNamespace(parent.GetNamespace())); err != nil {
+			slog.ErrorContext(ctx, "Failed to list child objects", "error", err)
+			return reconcile.Result{}, err
+		}
+
+		// Filter to only include children that are controlled by the parent.
+		var controlled []unstructured.Unstructured
+		for _, child := range childList.Items {
+			if metav1.IsControlledBy(&child, parent) {
+				controlled = append(controlled, child)
+			}
+		}
+		children[childGVK] = controlled
+	}
+
 	// Send a request and wait for a worker to accept it.
 	slog.DebugContext(ctx, "Sending reconcile request")
-	request := newReconcileRequest(ctx, obj)
+	request := newReconcileRequest(ctx, parent, children)
 
 	select {
 	case r.requests <- request:
@@ -90,10 +119,10 @@ func (r *reconcilerAdapter) Reconcile(ctx context.Context, req reconcile.Request
 			}
 
 			// Only send a status update if something changed.
-			if !equality.Semantic.DeepEqual(obj.Object["status"], newStatus) {
-				obj.Object["status"] = newStatus
+			if !equality.Semantic.DeepEqual(parent.Object["status"], newStatus) {
+				parent.Object["status"] = newStatus
 
-				if err := r.kubeClient.Status().Update(ctx, obj); err != nil {
+				if err := r.kubeClient.Status().Update(ctx, parent); err != nil {
 					// We ignore conflict (optimistic concurrency) errors on status
 					// updates because they are common during normal operation.
 					// We will retry the update on the next reconcile.

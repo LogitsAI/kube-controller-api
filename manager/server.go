@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -71,6 +72,7 @@ func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.St
 	s.managerConfig = in
 
 	s.controllers = map[string]controllerEntry{}
+	childGVKs := []schema.GroupVersionKind{}
 	for _, controller := range in.Controllers {
 		bldr := builder.ControllerManagedBy(mgr)
 
@@ -80,12 +82,20 @@ func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.St
 			bldr = bldr.For(obj)
 		}
 		for _, child := range controller.Children {
+			childGVK := child.GroupVersionKind()
+			childGVKs = append(childGVKs, childGVK)
+
 			obj := &unstructured.Unstructured{}
-			obj.SetGroupVersionKind(child.GroupVersionKind())
+			obj.SetGroupVersionKind(childGVK)
 			bldr = bldr.Owns(obj)
 		}
 
-		reconciler := newReconcilerAdapter(mgr.GetClient(), controller.Parent.GroupVersionKind(), controller.Name)
+		reconciler := newReconcilerAdapter(
+			mgr.GetClient(),
+			controller.Name,
+			controller.Parent.GroupVersionKind(),
+			childGVKs,
+		)
 		if err := bldr.Complete(reconciler); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "failed to create controller %q: %v", controller.Name, err)
 		}
@@ -149,12 +159,17 @@ func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerMa
 		}
 
 		// Push it down to the worker by returning it as a streaming response.
-		data, err := json.Marshal(request.object)
+		parentJSON, err := json.Marshal(request.parent)
 		if err != nil {
 			return status.Errorf(codes.Internal, "failed to marshal object: %v", err)
 		}
+		children, err := childObjectsProto(request.children)
+		if err != nil {
+			return status.Errorf(codes.Internal, "failed to marshal child objects: %v", err)
+		}
 		resp := &controllerpb.ReconcileLoopResponse{
-			Object: data,
+			Parent:   parentJSON,
+			Children: children,
 		}
 		if err := stream.Send(resp); err != nil {
 			return err
@@ -179,4 +194,27 @@ func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerMa
 		// We no longer have a request in-flight.
 		request = nil
 	}
+}
+
+func childObjectsProto(children map[schema.GroupVersionKind][]unstructured.Unstructured) ([]*controllerpb.ChildObjects, error) {
+	var childrenProto []*controllerpb.ChildObjects
+	for gvk, objs := range children {
+		objsProto := make([][]byte, len(objs))
+		for i, obj := range objs {
+			objJSON, err := json.Marshal(obj)
+			if err != nil {
+				return nil, err
+			}
+			objsProto[i] = objJSON
+		}
+		childrenProto = append(childrenProto, &controllerpb.ChildObjects{
+			GroupVersionKind: &controllerpb.GroupVersionKind{
+				Group:   gvk.Group,
+				Version: gvk.Version,
+				Kind:    gvk.Kind,
+			},
+			Objects: objsProto,
+		})
+	}
+	return childrenProto, nil
 }

@@ -13,18 +13,38 @@ from . import (
     reconciler_pb2,
 )
 
+@dataclass(frozen=True)
+class GroupVersionKind:
+    group: str
+    version: str
+    kind: str
+
+    def __init__(self, group: str, version: str, kind: str):
+        """This constructor allows us to use positional args."""
+
+        # Bypass frozenness for construction, like the default dataclass constructor would.
+        object.__setattr__(self, "group", group)
+        object.__setattr__(self, "version", version)
+        object.__setattr__(self, "kind", kind)
+
+    def to_proto(self):
+        return controller_pb2.GroupVersionKind(group=self.group, version=self.version, kind=self.kind)
+
+    @staticmethod
+    def from_proto(gvk):
+        return GroupVersionKind(group=gvk.group, version=gvk.version, kind=gvk.kind)
+
 @dataclass
 class ControllerConfig:
     name: str
-    parent: controller_pb2.GroupVersionKind = None
-
-    def set_parent(self, group, version, kind):
-        self.parent = controller_pb2.GroupVersionKind(group=group, version=version, kind=kind)
+    parent: GroupVersionKind
+    children: list[GroupVersionKind] = field(default_factory=list)
 
     def to_proto(self):
         controller = controller_pb2.ControllerConfig(name=self.name)
-        if self.parent is not None:
-            controller.parent.CopyFrom(self.parent)
+        controller.parent.CopyFrom(self.parent.to_proto())
+        for child in self.children:
+            controller.children.add().CopyFrom(child.to_proto())
         return controller
 
 
@@ -41,9 +61,29 @@ class ControllerManagerConfig:
 
 @dataclass
 class ReconcileRequest:
-    object: Any
     conn: 'Connection'
+    parent: dict[str, Any]
+    children: dict[GroupVersionKind, list[dict[str, Any]]] = field(default_factory=dict)
 
+    @staticmethod
+    def from_proto(conn: 'Connection', response: manager_pb2.ReconcileLoopResponse):
+        """
+        Convert a ReconcileLoopResponse from the server into a ReconcileRequest.
+        Note that it comes to us as an RPC response because we make an outgoing
+        call to the server to subscribe to a stream of reconcile requests.
+        """
+
+        # Decode child objects.
+        children = {}
+        for child_objects in response.children:
+            gvk = GroupVersionKind.from_proto(child_objects.group_version_kind)
+            children[gvk] = [json.loads(obj) for obj in child_objects.objects]
+
+        return ReconcileRequest(
+                conn=conn,
+                parent=json.loads(response.parent),
+                children=children,
+            )
 
 @dataclass
 class ReconcileResult:
@@ -89,10 +129,7 @@ class Connection(contextlib.AbstractAsyncContextManager):
 
         # Process objects from the work queue.
         async for response in stream:
-            request = ReconcileRequest(
-                conn=self,
-                object=json.loads(response.object),
-            )
+            request = ReconcileRequest.from_proto(self, response)
 
             try:
                 result = await reconcile_func(request)

@@ -45,6 +45,10 @@ message ReconcileLoopRequest {
 
 // ReconcileLoopResponse contains a single object to be reconciled.
 message ReconcileLoopResponse {
-    // Object is a JSON-encoded Kubernetes object.
-    bytes object = 1;
+    // Parent is a JSON-encoded Kubernetes object to be reconciled.
+    bytes parent = 1;
+
+    // Children is a list of lists of JSON-encoded Kubernetes objects
+    // representing the children of the parent object, grouped by object kind.
+    repeated ChildObjects children = 2;
 }
