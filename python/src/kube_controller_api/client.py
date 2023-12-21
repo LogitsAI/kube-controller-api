@@ -1,7 +1,7 @@
 import json
 import contextlib
 from datetime import timedelta
-from typing import Callable, Coroutine, Any
+from typing import Callable, Coroutine, Any, TypeAlias
 from dataclasses import dataclass, field
 
 import grpc.aio
@@ -59,11 +59,15 @@ class ControllerManagerConfig:
         return request
 
 
+Object: TypeAlias = dict[str, Any]
+ObjectMap: TypeAlias = dict[str, Object]
+
+
 @dataclass
 class ReconcileRequest:
     conn: 'Connection'
     parent: dict[str, Any]
-    children: dict[GroupVersionKind, list[dict[str, Any]]] = field(default_factory=dict)
+    children: dict[GroupVersionKind, ObjectMap] = field(default_factory=dict)
 
     @staticmethod
     def from_proto(conn: 'Connection', response: manager_pb2.ReconcileLoopResponse):
@@ -77,7 +81,9 @@ class ReconcileRequest:
         children = {}
         for child_objects in response.children:
             gvk = GroupVersionKind.from_proto(child_objects.group_version_kind)
-            children[gvk] = [json.loads(obj) for obj in child_objects.objects]
+            children[gvk] = {
+                key: json.loads(obj) for key, obj in child_objects.observed_objects.items()
+            }
 
         return ReconcileRequest(
                 conn=conn,

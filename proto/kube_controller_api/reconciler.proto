@@ -24,6 +24,13 @@ message ReconcileResult {
     // Status is the new value to set for the status subresource, if specified.
     // It should be the JSON-encoded value of the `.status` field.
     optional bytes status = 4;
+
+    // Children is the set of child objects to maintain.
+    //
+    // The reconciler must always send back a complete list of all desired
+    // child objects. Any observed child objects that are not listed here will
+    // be deleted.
+    repeated DesiredChildObjects children = 5;
 }
 
 message WorkQueue {
@@ -31,7 +38,31 @@ message WorkQueue {
     string controller_name = 1;
 }
 
-message ChildObjects {
+message DesiredChildObjects {
     GroupVersionKind group_version_kind = 1;
-    repeated bytes objects = 2;
+    
+    // ApplyConfigs are the JSON-encoded object configs to create or update
+    // by sending them to the Kubernetes API via Server-Side Apply.
+    // Similar to a file written for use with `kubectl apply`, you should only
+    // include fields that you wish to set.
+    //
+    // The map key should be a string that uniquely identifies each child object
+    // within a given parent. This will be used to automatically generate a name
+    // for the actual Kubernetes object that's unique across different parents.
+    //
+    // Note that it is NOT safe to send back a full observed object as an apply
+    // config because it would contain many fields that your controller isn't
+    // trying to set.
+    map<string, bytes> apply_configs = 2;
+}
+
+message ObservedChildObjects {
+    GroupVersionKind group_version_kind = 1;
+
+    // ObservedObjects is a map of JSON-encoded objects of the given GroupVersionKind
+    // that belong to the parent object, as last returned by the Kubernetes API.
+    //
+    // The map key will match the value used in DesiredChildObjects when the
+    // object was created.
+    map<string, bytes> observed_objects = 2;
 }

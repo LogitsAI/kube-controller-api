@@ -17,6 +17,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+const (
+	// childKeyAnnotation is the annotation in which we store the map key that
+	// the user-written reconciler uses to uniquely identify a given child
+	// object within the context of its parent.
+	childKeyAnnotation = "kube-controller-api.logits.ai/child-key"
+)
+
 type reconcileRequest struct {
 	ctx      context.Context
 	parent   *unstructured.Unstructured

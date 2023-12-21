@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -196,24 +197,28 @@ func (s *ControllerManagerServer) ReconcileLoop(stream controllerpb.ControllerMa
 	}
 }
 
-func childObjectsProto(children map[schema.GroupVersionKind][]unstructured.Unstructured) ([]*controllerpb.ChildObjects, error) {
-	var childrenProto []*controllerpb.ChildObjects
+func childObjectsProto(children map[schema.GroupVersionKind][]unstructured.Unstructured) ([]*controllerpb.ObservedChildObjects, error) {
+	var childrenProto []*controllerpb.ObservedChildObjects
 	for gvk, objs := range children {
-		objsProto := make([][]byte, len(objs))
-		for i, obj := range objs {
+		observed := make(map[string][]byte, len(objs))
+		for _, obj := range objs {
 			objJSON, err := json.Marshal(obj)
 			if err != nil {
 				return nil, err
 			}
-			objsProto[i] = objJSON
+			key := obj.GetAnnotations()[childKeyAnnotation]
+			if key == "" {
+				return nil, fmt.Errorf("child %s %s/%s is missing child key annotation (%q)", obj.GetKind(), obj.GetNamespace(), obj.GetName(), childKeyAnnotation)
+			}
+			observed[key] = objJSON
 		}
-		childrenProto = append(childrenProto, &controllerpb.ChildObjects{
+		childrenProto = append(childrenProto, &controllerpb.ObservedChildObjects{
 			GroupVersionKind: &controllerpb.GroupVersionKind{
 				Group:   gvk.Group,
 				Version: gvk.Version,
 				Kind:    gvk.Kind,
 			},
-			Objects: objsProto,
+			ObservedObjects: observed,
 		})
 	}
 	return childrenProto, nil

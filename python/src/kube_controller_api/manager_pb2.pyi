@@ -30,5 +30,5 @@ class ReconcileLoopResponse(_message.Message):
     PARENT_FIELD_NUMBER: _ClassVar[int]
     CHILDREN_FIELD_NUMBER: _ClassVar[int]
     parent: bytes
-    children: _containers.RepeatedCompositeFieldContainer[_reconciler_pb2.ChildObjects]
-    def __init__(self, parent: _Optional[bytes] = ..., children: _Optional[_Iterable[_Union[_reconciler_pb2.ChildObjects, _Mapping]]] = ...) -> None: ...
+    children: _containers.RepeatedCompositeFieldContainer[_reconciler_pb2.ObservedChildObjects]
+    def __init__(self, parent: _Optional[bytes] = ..., children: _Optional[_Iterable[_Union[_reconciler_pb2.ObservedChildObjects, _Mapping]]] = ...) -> None: ...

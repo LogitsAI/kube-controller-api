@@ -22,7 +22,7 @@ async def reconcile_example(request: ReconcileRequest) -> ReconcileResult:
     return ReconcileResult(
         status={
             "output": request.parent["spec"]["input"] + " output",
-            "configMaps": len(config_maps),
+            "configMaps": list(config_maps),
         },
     )
 

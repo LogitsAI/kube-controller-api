@@ -15,7 +15,7 @@ from kube_controller_api import controller_pb2 as kube__controller__api_dot_cont
 from kube_controller_api import reconciler_pb2 as kube__controller__api_dot_reconciler__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!kube_controller_api/manager.proto\x12\x13kube_controller_api\x1a$kube_controller_api/controller.proto\x1a$kube_controller_api/reconciler.proto\"J\n\x0cStartRequest\x12:\n\x0b\x63ontrollers\x18\x01 \x03(\x0b\x32%.kube_controller_api.ControllerConfig\"\x0f\n\rStartResponse\"\x8f\x01\n\x14ReconcileLoopRequest\x12\x33\n\tsubscribe\x18\x01 \x01(\x0b\x32\x1e.kube_controller_api.WorkQueueH\x00\x12;\n\x0b\x61\x63knowledge\x18\x02 \x01(\x0b\x32$.kube_controller_api.ReconcileResultH\x00\x42\x05\n\x03msg\"\\\n\x15ReconcileLoopResponse\x12\x0e\n\x06parent\x18\x01 \x01(\x0c\x12\x33\n\x08\x63hildren\x18\x02 \x03(\x0b\x32!.kube_controller_api.ChildObjects2\xd3\x01\n\x11\x43ontrollerManager\x12P\n\x05Start\x12!.kube_controller_api.StartRequest\x1a\".kube_controller_api.StartResponse\"\x00\x12l\n\rReconcileLoop\x12).kube_controller_api.ReconcileLoopRequest\x1a*.kube_controller_api.ReconcileLoopResponse\"\x00(\x01\x30\x01\x42\x36Z4github.com/LogitsAI/kube-controller-api/controllerpbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!kube_controller_api/manager.proto\x12\x13kube_controller_api\x1a$kube_controller_api/controller.proto\x1a$kube_controller_api/reconciler.proto\"J\n\x0cStartRequest\x12:\n\x0b\x63ontrollers\x18\x01 \x03(\x0b\x32%.kube_controller_api.ControllerConfig\"\x0f\n\rStartResponse\"\x8f\x01\n\x14ReconcileLoopRequest\x12\x33\n\tsubscribe\x18\x01 \x01(\x0b\x32\x1e.kube_controller_api.WorkQueueH\x00\x12;\n\x0b\x61\x63knowledge\x18\x02 \x01(\x0b\x32$.kube_controller_api.ReconcileResultH\x00\x42\x05\n\x03msg\"d\n\x15ReconcileLoopResponse\x12\x0e\n\x06parent\x18\x01 \x01(\x0c\x12;\n\x08\x63hildren\x18\x02 \x03(\x0b\x32).kube_controller_api.ObservedChildObjects2\xd3\x01\n\x11\x43ontrollerManager\x12P\n\x05Start\x12!.kube_controller_api.StartRequest\x1a\".kube_controller_api.StartResponse\"\x00\x12l\n\rReconcileLoop\x12).kube_controller_api.ReconcileLoopRequest\x1a*.kube_controller_api.ReconcileLoopResponse\"\x00(\x01\x30\x01\x42\x36Z4github.com/LogitsAI/kube-controller-api/controllerpbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -30,7 +30,7 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_RECONCILELOOPREQUEST']._serialized_start=228
   _globals['_RECONCILELOOPREQUEST']._serialized_end=371
   _globals['_RECONCILELOOPRESPONSE']._serialized_start=373
-  _globals['_RECONCILELOOPRESPONSE']._serialized_end=465
-  _globals['_CONTROLLERMANAGER']._serialized_start=468
-  _globals['_CONTROLLERMANAGER']._serialized_end=679
+  _globals['_RECONCILELOOPRESPONSE']._serialized_end=473
+  _globals['_CONTROLLERMANAGER']._serialized_start=476
+  _globals['_CONTROLLERMANAGER']._serialized_end=687
 # @@protoc_insertion_point(module_scope)
