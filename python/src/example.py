@@ -12,18 +12,35 @@ from kube_controller_api.client import (
     GroupVersionKind,
 )
 
+CONFIG_MAP_GVK = GroupVersionKind("", "v1", "ConfigMap")
+
 async def reconcile_example(request: ReconcileRequest) -> ReconcileResult:
     namespace = request.parent["metadata"]["namespace"]
     name = request.parent["metadata"]["name"]
     print(f"Example {namespace}/{name} reconciled")
 
-    config_maps = request.children[GroupVersionKind("", "v1", "ConfigMap")]
+    observed_config_maps = request.children[CONFIG_MAP_GVK]
+    desired_config_maps = {
+        "child-1": {
+            "data": {
+                "key": "value 1",
+            }
+        },
+        "child-2": {
+            "data": {
+                "key": "value 2",
+            }
+        }
+    }
 
     return ReconcileResult(
         status={
             "output": request.parent["spec"]["input"] + " output",
-            "configMaps": list(config_maps),
+            "configMaps": list(observed_config_maps),
         },
+        children={
+            CONFIG_MAP_GVK: desired_config_maps,
+        }
     )
 
 async def main():

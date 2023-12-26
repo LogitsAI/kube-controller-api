@@ -72,6 +72,14 @@ func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.St
 	s.manager = mgr
 	s.managerConfig = in
 
+	// Create a low-level client-go dynamic client. We use this (bypassing the
+	// high-level client in controller-runtime) for Server-Side Apply, since
+	// controller-runtime doesn't support it yet.
+	dynClient, err := NewDynamicClient(mgr)
+	if err != nil {
+		return nil, err
+	}
+
 	s.controllers = map[string]controllerEntry{}
 	childGVKs := []schema.GroupVersionKind{}
 	for _, controller := range in.Controllers {
@@ -92,7 +100,8 @@ func (s *ControllerManagerServer) Start(ctx context.Context, in *controllerpb.St
 		}
 
 		reconciler := newReconcilerAdapter(
-			mgr.GetClient(),
+			mgr,
+			dynClient,
 			controller.Name,
 			controller.Parent.GroupVersionKind(),
 			childGVKs,

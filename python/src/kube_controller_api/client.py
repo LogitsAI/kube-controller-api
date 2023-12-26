@@ -30,6 +30,12 @@ class GroupVersionKind:
     def to_proto(self):
         return controller_pb2.GroupVersionKind(group=self.group, version=self.version, kind=self.kind)
 
+    def api_version(self):
+        if self.group == "":
+            return self.version
+        else:
+            return f"{self.group}/{self.version}"
+
     @staticmethod
     def from_proto(gvk):
         return GroupVersionKind(group=gvk.group, version=gvk.version, kind=gvk.kind)
@@ -96,6 +102,7 @@ class ReconcileResult:
     requeue: bool = False
     requeue_after: timedelta | None = None
     status: Any | None = None
+    children: dict[GroupVersionKind, ObjectMap] = field(default_factory=dict)
 
     def to_proto(self):
         result = reconciler_pb2.ReconcileResult()
@@ -104,6 +111,13 @@ class ReconcileResult:
             result.requeue_after.FromTimedelta(self.requeue_after)
         if self.status is not None:
             result.status = json.dumps(self.status).encode("utf-8")
+        for gvk, objects in self.children.items():
+            child_objects = result.children.add()
+            child_objects.group_version_kind.CopyFrom(gvk.to_proto())
+            for key, obj in objects.items():
+                obj["apiVersion"] = gvk.api_version()
+                obj["kind"] = gvk.kind
+                child_objects.apply_configs[key] = json.dumps(obj).encode("utf-8")
         return result
 
 
