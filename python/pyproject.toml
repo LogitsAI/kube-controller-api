@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kube-controller-api"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
     { name="Anthony Yeh", email="enisoc@enisoc.dev" },
 ]
