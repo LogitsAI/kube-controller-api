@@ -1,5 +1,7 @@
 import json
 import contextlib
+import asyncio
+
 from datetime import timedelta
 from typing import Callable, Coroutine, Any, TypeAlias
 from dataclasses import dataclass, field
@@ -163,3 +165,34 @@ class Connection(contextlib.AbstractAsyncContextManager):
                 await stream.write(manager_pb2.ReconcileLoopRequest(
                     acknowledge=reconciler_pb2.ReconcileResult(error=str(e)),
                 ))
+
+
+class Controller:
+    @classmethod
+    def __init_subclass__(cls, /, **kwargs):
+        cls.config = ControllerConfig(**kwargs)
+
+    async def reconcile(request: ReconcileRequest) -> ReconcileResult:
+        raise NotImplementedError
+
+
+class ControllerManager:
+    def __init__(self, address: str, controllers: list[Controller]):
+        self.address = address
+        self.controllers = controllers
+
+    async def start(self):
+        async with Connection(self.address) as conn:
+            config = ControllerManagerConfig(
+                controllers=[controller.config for controller in self.controllers]
+            )
+
+            # Create a remote ControllerManager instance on the server.
+            await conn.start_manager(config)
+
+            # Start processing reconcile requests from the server's work queue.
+            # TODO: Support multiple workers per controller.
+            async with asyncio.TaskGroup() as tg:
+                for controller in self.controllers:
+                    tg.create_task(
+                        conn.reconcile_loop(controller.config.name, controller.reconcile))
